@@ -9,7 +9,7 @@ Create a config file at:
 %APPDATA%\TorrentHandler\config.json
 
 You can start from this minimal template:
-
+```
 {
   "version": 1,
   "clients": [
@@ -40,17 +40,17 @@ You can start from this minimal template:
     }
   ]
 }
-
+```
 ### Focus options
-
-- mode:
-  - none: skip focusing
-  - processPath: find by executable path
-  - window: find by window class/title
-- windowClass: exact window class name (optional)
-- windowTitle: exact window title (optional)
-- windowTitleContains: substring match for window title (optional)
-
+* This feature will bring the specified window to the foreground (this is required if you use multiple uTorrent clients)
+- **mode**:
+  - **none**: skip focusing
+  - **processPath**: find by executable path
+  - **window**: find by window class/title
+- **windowClass**: exact window class name (optional)
+- **windowTitle**: exact window title (optional)
+- **windowTitleContains**: substring match for window title (optional)
+- 
 ## Releases
 
 Releases publish a single executable:
