@@ -33,7 +33,7 @@ You can start from this minimal template:
       "rules": [
         {
           "trackerDomains": [
-            "landof.tv"
+            "tracker-name.tv"
           ]
         }
       ]
@@ -42,7 +42,7 @@ You can start from this minimal template:
 }
 ```
 ### Focus options
-* This feature will bring the specified window to the foreground (this is required if you use multiple uTorrent clients)
+_This feature will bring the specified window to the foreground (this is required if you use multiple uTorrent clients)_
 - **mode**:
   - **none**: skip focusing
   - **processPath**: find by executable path
@@ -50,7 +50,7 @@ You can start from this minimal template:
 - **windowClass**: exact window class name (optional)
 - **windowTitle**: exact window title (optional)
 - **windowTitleContains**: substring match for window title (optional)
-- 
+  
 ## Releases
 
 Releases publish a single executable:
