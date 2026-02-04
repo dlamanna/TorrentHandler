@@ -1,0 +1,64 @@
+name: Publish TorrentHandler
+
+on:
+  push:
+    tags:
+      - v*
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Build Release
+        run: dotnet build "TorrentHandler.sln" -c Release
+
+      - name: Package Release Assets
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          $root = Get-Location
+          $releaseDir = Join-Path $root "bin\Release\net8.0-windows"
+          $staging = Join-Path $root "artifacts"
+          New-Item -ItemType Directory -Path $staging -Force | Out-Null
+
+          $files = @(
+            (Join-Path $releaseDir "TorrentHandler.exe"),
+            (Join-Path $releaseDir "MonitorHandling.au3"),
+            (Join-Path $releaseDir "utorrentGeneral.au3"),
+            (Join-Path $releaseDir "utorrentmovies.au3"),
+            (Join-Path $releaseDir "utorrentmusic.au3"),
+            (Join-Path $releaseDir "utorrentTV.au3"),
+            (Join-Path $releaseDir "utorrentGeneral.exe"),
+            (Join-Path $releaseDir "utorrentmovies.exe"),
+            (Join-Path $releaseDir "utorrentmusic.exe"),
+            (Join-Path $releaseDir "utorrentTV.exe")
+          )
+
+          foreach ($file in $files) {
+            if (-not (Test-Path $file)) {
+              throw "Missing required file: $file"
+            }
+          }
+
+          $zipPath = Join-Path $staging "TorrentHandler-v1.0.0.zip"
+          if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
+
+          Compress-Archive -Path $files -DestinationPath $zipPath
+
+      - name: Publish Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/TorrentHandler-v1.0.0.zip

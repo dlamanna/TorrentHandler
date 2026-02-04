@@ -1,24 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace TorrentHandler
 {
     public partial class ChoiceForm : Form
     {
-        private Button musicButton;
-        private Button generalButton;
-        private Button tvButton;
-        private Button movieButton;
+        private Button musicButton = null!;
+        private Button generalButton = null!;
+        private Button tvButton = null!;
+        private Button movieButton = null!;
 
         public ChoiceForm()
         {
@@ -44,7 +35,7 @@ namespace TorrentHandler
             this.movieButton.TabIndex = 0;
             this.movieButton.Text = "Movie";
             this.movieButton.UseVisualStyleBackColor = true;
-            this.movieButton.Click += new System.EventHandler(this.movieButton_Click);
+            this.movieButton.Click += new EventHandler(this.movieButton_Click);
             // 
             // musicButton
             // 
@@ -57,7 +48,7 @@ namespace TorrentHandler
             this.musicButton.TabIndex = 3;
             this.musicButton.Text = "Music";
             this.musicButton.UseVisualStyleBackColor = false;
-            this.musicButton.Click += new System.EventHandler(this.musicButton_Click);
+            this.musicButton.Click += new EventHandler(this.musicButton_Click);
             // 
             // generalButton
             // 
@@ -69,7 +60,7 @@ namespace TorrentHandler
             this.generalButton.TabIndex = 2;
             this.generalButton.Text = "General";
             this.generalButton.UseVisualStyleBackColor = true;
-            this.generalButton.Click += new System.EventHandler(this.generalButton_Click);
+            this.generalButton.Click += new EventHandler(this.generalButton_Click);
             // 
             // tvButton
             // 
@@ -81,7 +72,7 @@ namespace TorrentHandler
             this.tvButton.TabIndex = 1;
             this.tvButton.Text = "TV";
             this.tvButton.UseVisualStyleBackColor = true;
-            this.tvButton.Click += new System.EventHandler(this.tvButton_Click);
+            this.tvButton.Click += new EventHandler(this.tvButton_Click);
             // 
             // ChoiceForm
             // 
@@ -91,7 +82,7 @@ namespace TorrentHandler
             this.Controls.Add(this.generalButton);
             this.Controls.Add(this.musicButton);
             this.Controls.Add(this.movieButton);
-            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon")!;
             this.Location = new System.Drawing.Point(509, 91);
             this.MaximizeBox = false;
             this.MinimizeBox = false;
@@ -105,52 +96,71 @@ namespace TorrentHandler
         }
 
         // Mouseclick Handlers
-        private void movieButton_Click(object sender, EventArgs e)
+        private void movieButton_Click(object? sender, EventArgs e)
         {
-            sendTorrent(Globalvar.MoviesFocus, Globalvar.MoviesPath);
+            SendTorrent(GlobalVars.MoviesFocus, GlobalVars.MoviesPath);
             Close();
         }
-        private void tvButton_Click(object sender, EventArgs e)
+        private void tvButton_Click(object? sender, EventArgs e)
         {
-            sendTorrent(Globalvar.TVFocus, Globalvar.TVPath);
+            SendTorrent(GlobalVars.TvFocus, GlobalVars.TvPath);
             Close();
         }
-        private void generalButton_Click(object sender, EventArgs e)
+        private void generalButton_Click(object? sender, EventArgs e)
         {
-            sendTorrent(Globalvar.GeneralFocus, Globalvar.GeneralPath);
+            SendTorrent(GlobalVars.GeneralFocus, GlobalVars.GeneralPath);
             Close();
         }
-        private void musicButton_Click(object sender, EventArgs e)
+        private void musicButton_Click(object? sender, EventArgs e)
         {
-            sendTorrent(Globalvar.MusicFocus, Globalvar.MusicPath);
+            SendTorrent(GlobalVars.MusicFocus, GlobalVars.MusicPath);
             Close();
         }
 
-        public void sendTorrent(String focusWhich, String handlerPath)
+        public void SendTorrent(string focusWhich, string handlerPath)
         {
-            startProgram(focusWhich, "");
-            startProgram(handlerPath, '\"' + Globalvar.torrentFile + '\"');
+            StartProgram(focusWhich, string.Empty, waitForExit: true);
+            StartProgram(handlerPath, QuoteArgument(GlobalVars.TorrentFile));
         }
-        public void startProgram(String fileName, String arguments)
+
+        public void StartProgram(string fileName, string arguments, bool waitForExit = false)
         {
-            System.Diagnostics.Process pProcess = new System.Diagnostics.Process();
-            pProcess.StartInfo.FileName = fileName;
-            pProcess.StartInfo.Arguments = arguments;
-            pProcess.StartInfo.CreateNoWindow = true;
-            pProcess.Start();
-            
-            if(arguments.Equals(""))
+            using var process = new Process
             {
-                pProcess.WaitForExit();
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = fileName,
+                    Arguments = arguments,
+                    CreateNoWindow = true,
+                    UseShellExecute = false
+                }
+            };
+
+            process.Start();
+
+            if (waitForExit)
+            {
+                process.WaitForExit();
             }
         }
-        public static void createTooltip(String info)
-        {
-            String tooltipPath = Globalvar.getSetting("Tooltip");
-            Globalvar.choiceForm.startProgram(tooltipPath, info);
 
-            if (!Globalvar.isRelease)
+        public static void CreateTooltip(string info)
+        {
+            var tooltipPath = GlobalVars.GetSetting("Tooltip");
+            GlobalVars.ChoiceForm?.StartProgram(tooltipPath, info);
+
+            if (!GlobalVars.IsRelease)
                 Console.WriteLine(info);
+        }
+
+        private static string QuoteArgument(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return value;
+            }
+
+            return value.Contains(' ') ? $"\"{value}\"" : value;
         }
     }
 }

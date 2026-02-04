@@ -4,62 +4,57 @@ using System.Windows.Forms;
 
 namespace TorrentHandler
 {
-    static class Program
+    internal static class Program
     { 
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main(String[] args)
+        private static void Main(string[] args)
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Globalvar.choiceForm = new ChoiceForm();
+            ApplicationConfiguration.Initialize();
+            GlobalVars.ChoiceForm = new ChoiceForm();
 
-            /// Initial Definitions
-            Globalvar.isRelease = Globalvar.isReleaseVersion();
-            if (Globalvar.isRelease)
-                Globalvar.currentDirectory = System.IO.Path.GetDirectoryName(Application.ExecutablePath);
-            else
-                Globalvar.currentDirectory = Directory.GetCurrentDirectory();
+            GlobalVars.IsRelease = GlobalVars.IsReleaseVersion();
+            GlobalVars.CurrentDirectory = GlobalVars.IsRelease
+                ? AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar)
+                : Directory.GetCurrentDirectory();
 
-            Globalvar.setPaths();
+            GlobalVars.SetPaths();
 
-            String TVTrackerPath = Globalvar.currentDirectory + "\\TV.txt";
-            String MovieTrackerPath = Globalvar.currentDirectory + "\\Movies.txt";
-            String MusicTrackerPath = Globalvar.currentDirectory + "\\Music.txt";
-            String GeneralTrackerPath = Globalvar.currentDirectory + "\\General.txt";
-            Globalvar.MoviesPath = Globalvar.getSetting("Movies");
-            Globalvar.TVPath = Globalvar.getSetting("TV");
-            Globalvar.GeneralPath = Globalvar.getSetting("General");
-            Globalvar.MusicPath = Globalvar.getSetting("Music");
-            
-            Globalvar.torrentFile = String.Join(" ", args);
-            Boolean typeHit = false;
-            typeHit = Globalvar.scanTrackerFile(TVTrackerPath);
-            if (!typeHit) typeHit = Globalvar.scanTrackerFile(MovieTrackerPath);
-            else
+            var tvTrackerPath = Path.Combine(GlobalVars.CurrentDirectory, "TV.txt");
+            var movieTrackerPath = Path.Combine(GlobalVars.CurrentDirectory, "Movies.txt");
+            var musicTrackerPath = Path.Combine(GlobalVars.CurrentDirectory, "Music.txt");
+            var generalTrackerPath = Path.Combine(GlobalVars.CurrentDirectory, "General.txt");
+            var gameTrackerPath = Path.Combine(GlobalVars.CurrentDirectory, "Games.txt");
+
+            GlobalVars.MoviesPath = GlobalVars.GetSetting("Movies");
+            GlobalVars.TvPath = GlobalVars.GetSetting("TV");
+            GlobalVars.GeneralPath = GlobalVars.GetSetting("General");
+            GlobalVars.GamesPath = GlobalVars.GetSetting("Games");
+            GlobalVars.MusicPath = GlobalVars.GetSetting("Music");
+
+            GlobalVars.TorrentFile = string.Join(" ", args);
+
+            var trackers = new (string TrackerPath, string Focus, string HandlerPath)[]
             {
-                Globalvar.choiceForm.sendTorrent(Globalvar.TVFocus, Globalvar.TVPath);
-                return;
+                (tvTrackerPath, GlobalVars.TvFocus, GlobalVars.TvPath),
+                (movieTrackerPath, GlobalVars.MoviesFocus, GlobalVars.MoviesPath),
+                (musicTrackerPath, GlobalVars.MusicFocus, GlobalVars.MusicPath),
+                (gameTrackerPath, GlobalVars.GamesFocus, GlobalVars.GamesPath),
+                (generalTrackerPath, GlobalVars.GeneralFocus, GlobalVars.GeneralPath)
+            };
+
+            foreach (var tracker in trackers)
+            {
+                if (GlobalVars.ScanTrackerFile(tracker.TrackerPath))
+                {
+                    GlobalVars.ChoiceForm.SendTorrent(tracker.Focus, tracker.HandlerPath);
+                    return;
+                }
             }
 
-            if (!typeHit) typeHit = Globalvar.scanTrackerFile(MusicTrackerPath);
-            else
-            {
-                Globalvar.choiceForm.sendTorrent(Globalvar.MoviesFocus, Globalvar.MoviesPath);
-                return;
-            }
-
-            if (!typeHit) typeHit = Globalvar.scanTrackerFile(GeneralTrackerPath);
-            else
-            {
-                Globalvar.choiceForm.sendTorrent(Globalvar.MusicFocus, Globalvar.MusicPath);
-                return;
-            }
-
-            if (!typeHit) Application.Run(Globalvar.choiceForm);
-            else Globalvar.choiceForm.sendTorrent(Globalvar.GeneralFocus, Globalvar.GeneralPath);
+            Application.Run(GlobalVars.ChoiceForm);
         }
     }
 }
