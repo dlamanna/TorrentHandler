@@ -33,24 +33,12 @@ jobs:
           $ErrorActionPreference = "Stop"
 
           $root = Get-Location
-          $releaseDir = Join-Path $root "bin\Release"
-          $staging = Join-Path $root "artifacts\release"
-          $templateConfig = Join-Path $root "config.template.json"
-          $tag = $env:GITHUB_REF_NAME
-
-          if (-not (Test-Path $staging)) {
-            throw "Missing staging directory: $staging"
-          }
-
-          if (Test-Path $templateConfig) {
-            Copy-Item $templateConfig -Destination (Join-Path $staging "config.json") -Force
-          }
-
-          $zipPath = Join-Path $root "artifacts\TorrentHandler-$tag.zip"
-          if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
-          Compress-Archive -Path (Join-Path $staging "*") -DestinationPath $zipPath
+            $artifactExe = Join-Path $root "artifacts\TorrentHandler.exe"
+            if (-not (Test-Path $artifactExe)) {
+              throw "Missing release executable: $artifactExe"
+            }
 
       - name: Publish Release
         uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/TorrentHandler-${{ github.ref_name }}.zip
+            files: artifacts/TorrentHandler.exe
