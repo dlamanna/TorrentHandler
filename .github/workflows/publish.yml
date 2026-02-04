@@ -22,7 +22,10 @@ jobs:
           dotnet-version: 8.0.x
 
       - name: Build Release
-        run: dotnet build "TorrentHandler.sln" -c Release
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          .\scripts\build-release.ps1
 
       - name: Package Release Assets
         shell: pwsh
@@ -30,35 +33,24 @@ jobs:
           $ErrorActionPreference = "Stop"
 
           $root = Get-Location
-          $releaseDir = Join-Path $root "bin\Release\net8.0-windows"
-          $staging = Join-Path $root "artifacts"
-          New-Item -ItemType Directory -Path $staging -Force | Out-Null
+          $releaseDir = Join-Path $root "bin\Release"
+          $staging = Join-Path $root "artifacts\release"
+          $templateConfig = Join-Path $root "config.template.json"
+          $tag = $env:GITHUB_REF_NAME
 
-          $files = @(
-            (Join-Path $releaseDir "TorrentHandler.exe"),
-            (Join-Path $releaseDir "MonitorHandling.au3"),
-            (Join-Path $releaseDir "utorrentGeneral.au3"),
-            (Join-Path $releaseDir "utorrentmovies.au3"),
-            (Join-Path $releaseDir "utorrentmusic.au3"),
-            (Join-Path $releaseDir "utorrentTV.au3"),
-            (Join-Path $releaseDir "utorrentGeneral.exe"),
-            (Join-Path $releaseDir "utorrentmovies.exe"),
-            (Join-Path $releaseDir "utorrentmusic.exe"),
-            (Join-Path $releaseDir "utorrentTV.exe")
-          )
-
-          foreach ($file in $files) {
-            if (-not (Test-Path $file)) {
-              throw "Missing required file: $file"
-            }
+          if (-not (Test-Path $staging)) {
+            throw "Missing staging directory: $staging"
           }
 
-          $zipPath = Join-Path $staging "TorrentHandler-v1.0.0.zip"
-          if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
+          if (Test-Path $templateConfig) {
+            Copy-Item $templateConfig -Destination (Join-Path $staging "config.json") -Force
+          }
 
-          Compress-Archive -Path $files -DestinationPath $zipPath
+          $zipPath = Join-Path $root "artifacts\TorrentHandler-$tag.zip"
+          if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
+          Compress-Archive -Path (Join-Path $staging "*") -DestinationPath $zipPath
 
       - name: Publish Release
         uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/TorrentHandler-v1.0.0.zip
+          files: artifacts/TorrentHandler-${{ github.ref_name }}.zip

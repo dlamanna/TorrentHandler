@@ -1,6 +1,7 @@
 $ErrorActionPreference = "Stop"
 
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
-$solution = Join-Path $repoRoot "TorrentHandler.sln"
+$project = Join-Path $repoRoot "TorrentHandler.csproj"
+$outputDir = Join-Path $repoRoot "bin\Debug"
 
-dotnet build $solution -c Debug
+dotnet publish $project -c Debug -o $outputDir /p:PublishSingleFile=true /p:SelfContained=false /p:PublishReadyToRun=false

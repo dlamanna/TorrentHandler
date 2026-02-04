@@ -1,166 +1,99 @@
-﻿using System;
-using System.Diagnostics;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace TorrentHandler
 {
     public partial class ChoiceForm : Form
     {
-        private Button musicButton = null!;
-        private Button generalButton = null!;
-        private Button tvButton = null!;
-        private Button movieButton = null!;
+        private const int ButtonWidth = 106;
+        private const int ButtonHeight = 33;
+        private const int MarginX = 12;
+        private const int MarginY = 12;
+        private const int SpacingX = 16;
+        private const int SpacingY = 16;
 
-        public ChoiceForm()
+        private readonly AppConfig _config;
+        private readonly TorrentMetadata _metadata;
+
+        public ChoiceForm(AppConfig config, TorrentMetadata metadata)
         {
+            _config = config;
+            _metadata = metadata;
+
             InitializeComponent();
+            BuildButtons();
         }
 
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ChoiceForm));
-            this.movieButton = new System.Windows.Forms.Button();
-            this.musicButton = new System.Windows.Forms.Button();
-            this.generalButton = new System.Windows.Forms.Button();
-            this.tvButton = new System.Windows.Forms.Button();
-            this.SuspendLayout();
-            // 
-            // movieButton
-            // 
-            this.movieButton.Font = new System.Drawing.Font("Cambria", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.movieButton.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.movieButton.Location = new System.Drawing.Point(12, 12);
-            this.movieButton.Name = "movieButton";
-            this.movieButton.Size = new System.Drawing.Size(106, 33);
-            this.movieButton.TabIndex = 0;
-            this.movieButton.Text = "Movie";
-            this.movieButton.UseVisualStyleBackColor = true;
-            this.movieButton.Click += new EventHandler(this.movieButton_Click);
-            // 
-            // musicButton
-            // 
-            this.musicButton.BackColor = System.Drawing.SystemColors.Control;
-            this.musicButton.Font = new System.Drawing.Font("Cambria", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.musicButton.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.musicButton.Location = new System.Drawing.Point(134, 61);
-            this.musicButton.Name = "musicButton";
-            this.musicButton.Size = new System.Drawing.Size(106, 33);
-            this.musicButton.TabIndex = 3;
-            this.musicButton.Text = "Music";
-            this.musicButton.UseVisualStyleBackColor = false;
-            this.musicButton.Click += new EventHandler(this.musicButton_Click);
-            // 
-            // generalButton
-            // 
-            this.generalButton.Font = new System.Drawing.Font("Cambria", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.generalButton.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.generalButton.Location = new System.Drawing.Point(12, 61);
-            this.generalButton.Name = "generalButton";
-            this.generalButton.Size = new System.Drawing.Size(106, 33);
-            this.generalButton.TabIndex = 2;
-            this.generalButton.Text = "General";
-            this.generalButton.UseVisualStyleBackColor = true;
-            this.generalButton.Click += new EventHandler(this.generalButton_Click);
-            // 
-            // tvButton
-            // 
-            this.tvButton.Font = new System.Drawing.Font("Cambria", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tvButton.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.tvButton.Location = new System.Drawing.Point(134, 12);
-            this.tvButton.Name = "tvButton";
-            this.tvButton.Size = new System.Drawing.Size(106, 33);
-            this.tvButton.TabIndex = 1;
-            this.tvButton.Text = "TV";
-            this.tvButton.UseVisualStyleBackColor = true;
-            this.tvButton.Click += new EventHandler(this.tvButton_Click);
-            // 
-            // ChoiceForm
-            // 
-            this.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
-            this.ClientSize = new System.Drawing.Size(255, 108);
-            this.Controls.Add(this.tvButton);
-            this.Controls.Add(this.generalButton);
-            this.Controls.Add(this.musicButton);
-            this.Controls.Add(this.movieButton);
-            this.Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon")!;
-            this.Location = new System.Drawing.Point(509, 91);
-            this.MaximizeBox = false;
-            this.MinimizeBox = false;
-            this.Name = "ChoiceForm";
-            this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
-            this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
-            this.Text = "TorrentHandler";
-            this.TopMost = true;
-            this.ResumeLayout(false);
+            SuspendLayout();
+            AutoScaleMode = AutoScaleMode.Font;
+            BackColor = SystemColors.ActiveCaptionText;
+            MaximizeBox = false;
+            MinimizeBox = false;
+            Name = "ChoiceForm";
+            SizeGripStyle = SizeGripStyle.Hide;
+            StartPosition = FormStartPosition.Manual;
+            Text = "TorrentHandler";
+            TopMost = true;
+            Location = new Point(509, 91);
 
-        }
-
-        // Mouseclick Handlers
-        private void movieButton_Click(object? sender, EventArgs e)
-        {
-            SendTorrent(GlobalVars.MoviesFocus, GlobalVars.MoviesPath);
-            Close();
-        }
-        private void tvButton_Click(object? sender, EventArgs e)
-        {
-            SendTorrent(GlobalVars.TvFocus, GlobalVars.TvPath);
-            Close();
-        }
-        private void generalButton_Click(object? sender, EventArgs e)
-        {
-            SendTorrent(GlobalVars.GeneralFocus, GlobalVars.GeneralPath);
-            Close();
-        }
-        private void musicButton_Click(object? sender, EventArgs e)
-        {
-            SendTorrent(GlobalVars.MusicFocus, GlobalVars.MusicPath);
-            Close();
-        }
-
-        public void SendTorrent(string focusWhich, string handlerPath)
-        {
-            StartProgram(focusWhich, string.Empty, waitForExit: true);
-            StartProgram(handlerPath, QuoteArgument(GlobalVars.TorrentFile));
-        }
-
-        public void StartProgram(string fileName, string arguments, bool waitForExit = false)
-        {
-            using var process = new Process
+            var icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath);
+            if (icon != null)
             {
-                StartInfo = new ProcessStartInfo
+                Icon = icon;
+            }
+
+            ResumeLayout(false);
+        }
+
+        private void BuildButtons()
+        {
+            var categories = _config.Categories;
+            var rows = (categories.Count + 1) / 2;
+
+            var clientWidth = (MarginX * 2) + (ButtonWidth * 2) + SpacingX;
+            var clientHeight = (MarginY * 2) + (rows * ButtonHeight) + ((rows - 1) * SpacingY);
+
+            ClientSize = new Size(clientWidth, clientHeight);
+
+            for (var i = 0; i < categories.Count; i++)
+            {
+                var category = categories[i];
+                var row = i / 2;
+                var isLeft = (i % 2) == 0;
+                var y = MarginY + (row * (ButtonHeight + SpacingY));
+
+                var button = new Button
                 {
-                    FileName = fileName,
-                    Arguments = arguments,
-                    CreateNoWindow = true,
-                    UseShellExecute = false
+                    Font = new Font("Cambria", 9.75F, FontStyle.Regular, GraphicsUnit.Point, 0),
+                    ImageAlign = ContentAlignment.MiddleRight,
+                    Name = $"{category.Id}Button",
+                    Size = new Size(ButtonWidth, ButtonHeight),
+                    Text = category.Label,
+                    UseVisualStyleBackColor = true
+                };
+
+                var isLastOdd = (categories.Count % 2 == 1) && (i == categories.Count - 1);
+                if (isLastOdd)
+                {
+                    button.Location = new Point((ClientSize.Width - ButtonWidth) / 2, y);
                 }
-            };
+                else
+                {
+                    var x = isLeft ? MarginX : MarginX + ButtonWidth + SpacingX;
+                    button.Location = new Point(x, y);
+                }
 
-            process.Start();
-
-            if (waitForExit)
-            {
-                process.WaitForExit();
+                button.Click += (_, _) => OnCategoryClicked(category);
+                Controls.Add(button);
             }
         }
 
-        public static void CreateTooltip(string info)
+        private void OnCategoryClicked(CategoryConfig category)
         {
-            var tooltipPath = GlobalVars.GetSetting("Tooltip");
-            GlobalVars.ChoiceForm?.StartProgram(tooltipPath, info);
-
-            if (!GlobalVars.IsRelease)
-                Console.WriteLine(info);
-        }
-
-        private static string QuoteArgument(string value)
-        {
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                return value;
-            }
-
-            return value.Contains(' ') ? $"\"{value}\"" : value;
+            TorrentLauncher.Launch(category, _config, _metadata, isManualSelection: true);
+            Close();
         }
     }
 }
